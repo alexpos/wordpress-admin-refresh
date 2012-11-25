@@ -18,6 +18,8 @@ if(!is_admin()) return;
 class SevenDegrees_AdminRefresh {
 	public function __construct() {
 		add_action('admin_menu',			array($this, 'cleanupMenu'), 999);
+		add_action('init',					array($this, 'relabelPosts')); // Admin init runs after the menus are created
+		add_action('admin_menu',			array($this, 'relabelPostsMenu'));
 		add_action('wp_dashboard_setup',	array($this, 'removeWidgets'));
 		add_filter('admin_footer_text',		array($this, 'customFooterText'));
 	}
@@ -35,6 +37,40 @@ class SevenDegrees_AdminRefresh {
 		// Remove sub menu items
 		remove_submenu_page('themes.php', 'theme-editor.php');
 		remove_submenu_page('plugins.php', 'plugin-editor.php');
+	}
+
+	/**
+	 * Relabel "Posts" to a much more user friendly "Articles"
+	 * Handles all the variations as well
+	 */
+	public function relabelPosts() {
+		global $wp_post_types;
+
+		$wp_post_types['post']->labels->name				= 'Articles';
+		$wp_post_types['post']->labels->singular_name		= 'Article';
+		$wp_post_types['post']->labels->add_new				= 'Add New';
+		$wp_post_types['post']->labels->add_new_item		= 'Add New Article';
+		$wp_post_types['post']->labels->edit_item			= 'Edit Article';
+		$wp_post_types['post']->labels->new_item			= 'New Article';
+		$wp_post_types['post']->labels->view_item			= 'View Article';
+		$wp_post_types['post']->labels->search_items		= 'Search Articles';
+		$wp_post_types['post']->labels->not_found			= 'No articles found';
+		$wp_post_types['post']->labels->not_found_in_trash	= 'No articles found in Trash';
+		$wp_post_types['post']->labels->all_items			= 'All Articles';
+		$wp_post_types['post']->labels->menu_name			= 'Articles';
+		$wp_post_types['post']->labels->name_admin_bar		= 'Article';
+	}
+
+	/**
+	 * Update the admin menu to use Articles instead of News
+	 * This will automatically pull in terms updated from $wp_post_types['post']->labels
+	 */
+	public function relabelPostsMenu() {
+		global $menu, $submenu, $wp_post_types;
+
+		$menu[5][0]		= $wp_post_types['post']->labels->name;
+		$submenu['edit.php'][5][0]	= $wp_post_types['post']->labels->all_items;
+		$submenu['edit.php'][10][0]	= $wp_post_types['post']->labels->add_new;
 	}
 
 	/**
